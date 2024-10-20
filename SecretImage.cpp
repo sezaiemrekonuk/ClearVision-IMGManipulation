@@ -2,62 +2,48 @@
 #include "fstream"
 
 // Constructor: split image into upper and lower triangular arrays
-SecretImage::SecretImage(const GrayscaleImage &image)
+SecretImage::SecretImage(const GrayscaleImage &image) : width(image.get_width()), height(image.get_height())
 {
     // TODO: Your code goes here.
     // 1. Dynamically allocate the memory for the upper and lower triangular matrices.
-    // int upper_size;
-    // int lower_size;
 
-    // for (int i = 0; i < image.get_height(); i++){
-    //     for (int j = i; j < image.get_width(); j++){
-    //         upper_size++;
-    //     }
-    // }
+    // width = image.get_width(); // lol forgot these and lost like 30 minutes using        ^ is better
+    // height = image.get_height();
+    int upper_size = (width * (width + 1)) / 2;
+    int lower_size = (width * (width - 1)) / 2;
 
-    // for (int i = 0; i < image.get_height(); i++){
-    //     for (int j = 0; j < i; j++){
-    //         lower_size++;
-    //     }
-    // }
+    upper_triangular = new int[upper_size];
+    lower_triangular = new int[lower_size];
 
-    // upper_triangular = new int[upper_size];
-    // lower_triangular = new int[lower_size];
-
-    // it has higher space complexity but easier to access, so i chose this.
-    upper_triangular = new int[image.get_width() * image.get_height()];
-    lower_triangular = new int[image.get_width() * image.get_height()];
-
-    // 2. Fill both matrices with the pixels from the GrayscaleImage.
-    // upper part:
-    for (int i = 0; i < image.get_height(); i++)
+    int upper_index = 0, lower_index = 0;
+    // filling both at once:
+    for (int i = 0; i < height; i++)
     {
-        for (int j = i; j < image.get_width(); j++)
+        for (int j = 0; j < width; j++)
         {
-            upper_triangular[i * image.get_width() + j] = image.get_pixel(j, i);
-        }
-    }
-
-    // lower part:
-    for (int i = 0; i < image.get_height(); i++)
-    {
-        for (int j = 0; j < i; j++)
-        {
-            lower_triangular[i * image.get_width() + j] = image.get_pixel(j, i);
+            if (i <= j)
+            {
+                upper_triangular[upper_index++] = image.get_pixel(i, j);
+            }
+            else
+            {
+                lower_triangular[lower_index++] = image.get_pixel(i, j);
+            }
         }
     }
 }
 
 // Constructor: instantiate based on data read from file
-SecretImage::SecretImage(int w, int h, int *upper, int *lower)
+SecretImage::SecretImage(int w, int h, int *upper, int *lower) : width(w), height(h)
 {
     // TODO: Your code goes here.
     // Since file reading part should dynamically allocate upper and lower matrices.
     // You should simply copy the parameters to instance variables.
-    width = w;
-    height = h;
-    upper_triangular = upper;
-    lower_triangular = lower;
+    upper_triangular = new int[w * h]; // directly copying does not work
+    lower_triangular = new int[w * h];
+
+    std::copy(upper, upper + w * h, upper_triangular);
+    std::copy(lower, lower + w * h, lower_triangular);
 }
 
 // Destructor: free the arrays
@@ -75,21 +61,21 @@ GrayscaleImage SecretImage::reconstruct() const
 {
     GrayscaleImage image(width, height);
 
-    // TODO: Your code goes here.
-    // fitting the upper part
-    for (int i = 0; i < height; i++)
-    {
-        for (int j = i; j < width; j++)
-        {
-            image.set_pixel(j, i, upper_triangular[(width * i) + j]);
-        }
-    }
+    int upper_index = 0, lower_index = 0;
 
+    // both at once
     for (int i = 0; i < height; i++)
     {
-        for (int j = 0; j < i; j++)
+        for (int j = 0; j < width; j++)
         {
-            image.set_pixel(j, i, lower_triangular[(width * i) + j]);
+            if (i <= j)
+            {
+                image.set_pixel(i, j, upper_triangular[upper_index++]);
+            }
+            else
+            {
+                image.set_pixel(i, j, lower_triangular[lower_index++]);
+            }
         }
     }
 
@@ -105,21 +91,20 @@ void SecretImage::save_back(const GrayscaleImage &image)
     width = image.get_width();
     height = image.get_height();
 
-    // upper part
-    for (int i = 0; i < height; i++)
-    {
-        for (int j = i; j < width; j++)
-        {
-            upper_triangular[(width * i) + j] = image.get_pixel(j, i);
-        }
-    }
+    int upper_index = 0, lower_index = 0;
 
-    // lower part
     for (int i = 0; i < height; i++)
     {
-        for (int j = 0; j < i; j++)
+        for (int j = 0; j < width; j++)
         {
-            lower_triangular[(width * i) + j] = image.get_pixel(j, i);
+            if (i <= j)
+            {
+                upper_triangular[upper_index++] = image.get_pixel(i, j);
+            }
+            else
+            {
+                lower_triangular[lower_index++] = image.get_pixel(i, j);
+            }
         }
     }
 }
@@ -137,13 +122,14 @@ void SecretImage::save_to_file(const std::string &filename)
     }
     // 1. Write width and height on the first line, separated by a single space.
     file << width << " " << height << std::endl;
+
+    int upper_size = (width * (width + 1)) / 2;
+    int lower_size = (width * (width - 1)) / 2;
+
     // 2. Write the upper_triangular array to the second line.
-    for (int i = 0; i < height; i++)
+    for (int i = 0; i < upper_size; i++)
     {
-        for (int j = i; j < width; j++)
-        {
-            file << upper_triangular[(width * i) + j] << " ";
-        }
+        file << upper_triangular[i] << " ";
     }
     file << std::endl;
 
@@ -151,13 +137,12 @@ void SecretImage::save_to_file(const std::string &filename)
     // If there are 15 elements, write them as: "element1 element2 ... element15"
     // 3. Write the lower_triangular array to the third line in a similar manner
     // as the second line.
-    for (int i = 0; i < height; i++)
+    for (int i = 0; i < lower_size; i++)
     {
-        for (int j = 0; j < i; j++)
-        {
-            file << lower_triangular[(width * i) + j] << " ";
-        }
+        file << lower_triangular[i] << " ";
     }
+
+    file.close();
 }
 
 // Static function to load a SecretImage from a file
@@ -182,7 +167,8 @@ SecretImage SecretImage::load_from_file(const std::string &filename)
     int w, h;
     iss >> w >> h;
     // 2. Calculate the sizes of the upper and lower triangular arrays.
-    int upper_size = w * h, lower_size = w * h;
+    int upper_size = (w * (w + 1)) / 2;
+    int lower_size = (w * (w - 1)) / 2;
 
     // 3. Allocate memory for both arrays.
     int *upper = new int[upper_size];
@@ -192,30 +178,28 @@ SecretImage SecretImage::load_from_file(const std::string &filename)
     std::getline(file, line);
     std::istringstream issut(line);
 
-    for (int i = 0; i < h; i++)
+    for (int i = 0; i < upper_size; i++)
     {
-        for (int j = i; j < w; j++)
-        {
-            iss >> upper[(w * i) + j];
-        }
+        issut >> upper[i];
     }
 
     std::getline(file, line);
     std::istringstream isslt(line);
 
     // 5. Read the lower_triangular array from the third line, space-separated.
-    for (int i = 0; i < h; i++)
+    for (int i = 0; i < lower_size; i++)
     {
-        for (int j = 0; j < i; j++)
-        {
-            iss >> lower[(w * i) + j];
-        }
+        isslt >> lower[i];
     }
+
     // 6. Close the file and return a SecretImage object initialized with the
     file.close();
 
     //    width, height, and triangular arrays.
     SecretImage secret_image(w, h, upper, lower);
+
+    delete[] upper;
+    delete[] lower;
     return secret_image;
 }
 

@@ -48,24 +48,22 @@ GrayscaleImage::GrayscaleImage(const char *filename)
 }
 
 // Constructor: initialize from a pre-existing data matrix
-GrayscaleImage::GrayscaleImage(int **inputData, int h, int w)
+GrayscaleImage::GrayscaleImage(int **inputData, int h, int w) : width(w), height(h)
 {
     // TODO: Your code goes here.
     // Initialize the image with a pre-existing data matrix by copying the values.
     // Don't forget to dynamically allocate memory for the matrix.
-    data = new int *[h];
-    for (int i = 0; i < h; ++i)
+
+    data = new int *[height];
+    for (int i = 0; i < height; ++i)
     {
-        data[i] = new int[w];
+        data[i] = new int[width];
     }
 
     // value copying
-    for (int i = 0; i < h; ++i)
+    for (int i = 0; i < height; ++i)
     {
-        for (int j = 0; j < w; ++j)
-        {
-            data[i][j] = inputData[i][j];
-        }
+        std::memcpy(data[i], inputData[i], width * sizeof(int));
     }
 }
 
@@ -79,16 +77,16 @@ GrayscaleImage::GrayscaleImage(int w, int h) : width(w), height(h)
     {
         data[i] = new int[w];
     }
+
+    std::memset(data[0], 0, width * height * sizeof(int));
 }
 
 // Copy constructor
-GrayscaleImage::GrayscaleImage(const GrayscaleImage &other)
+GrayscaleImage::GrayscaleImage(const GrayscaleImage &other) : width(other.width), height(other.height)
 {
     // TODO: Your code goes here.
     // Copy constructor: dynamically allocate memory and
     // copy pixel values from another image.
-    width = other.width;
-    height = other.height;
 
     // data should be copied using a loop, because it is a pointer to a pointer.
     data = new int *[height];
@@ -100,10 +98,7 @@ GrayscaleImage::GrayscaleImage(const GrayscaleImage &other)
     // copying the values
     for (int i = 0; i < height; ++i)
     {
-        for (int j = 0; j < width; ++j)
-        {
-            data[i][j] = other.data[i][j];
-        }
+        std::memcpy(data[i], other.data[i], width * sizeof(int));
     }
 }
 
@@ -129,28 +124,22 @@ bool GrayscaleImage::operator==(const GrayscaleImage &other) const
     // TODO: Your code goes here.
     // Check if two images have the same dimensions and pixel values.
     // If they do, return true.
-    if (other.width == width && other.height == height)
+    // Check if two images have the same dimensions
+    if (other.width != width || other.height != height)
     {
-        bool isEqual = true;
-        for (int i = 0; i < height; i++)
-        {
-            if (!isEqual)
-            {
-                break;
-            }
-            for (int j = 0; j < width; j++)
-            {
-                if (data[i][j] != other.data[i][j])
-                {
-                    isEqual = false;
-                    break;
-                }
-            }
-        }
-        return isEqual;
+        return false;
     }
 
-    return false;
+    // Compare pixel values
+    for (int i = 0; i < height; ++i)
+    {
+        if (std::memcmp(data[i], other.data[i], width * sizeof(int)) != 0)
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 // Addition operator
@@ -163,15 +152,12 @@ GrayscaleImage GrayscaleImage::operator+(const GrayscaleImage &other) const
     // Add two images' pixel values and return a new image, clamping the results.
 
     // Note: if it overflows 255, make it 255 again.
+
     for (int i = 0; i < height; i++)
     {
         for (int j = 0; j < width; j++)
         {
-            result.data[i][j] = data[i][j] + other.data[i][j];
-            if (result.data[i][j] > 255)
-            {
-                result.data[i][j] = 255;
-            }
+            result.data[i][j] = std::min(data[i][j] + other.data[i][j], 255);
         }
     }
 
@@ -192,11 +178,7 @@ GrayscaleImage GrayscaleImage::operator-(const GrayscaleImage &other) const
     {
         for (int j = 0; j < width; j++)
         {
-            result.data[i][j] = data[i][j] - other.data[i][j];
-            if (result.data[i][j] < 0)
-            {
-                result.data[i][j] = 0;
-            }
+            result.data[i][j] = std::max(data[i][j] - other.data[i][j], 0);
         }
     }
 
@@ -228,6 +210,16 @@ void GrayscaleImage::save_to_file(const char *filename) const
         {
             imageBuffer[i * width + j] = static_cast<unsigned char>(data[i][j]);
         }
+    }
+
+    FILE *file = fopen(filename, "wb");
+    if (!file)
+    {
+        std::cerr << "Error: Cannot open file " << filename << " for writing." << std::endl;
+    }
+    else
+    {
+        fclose(file);
     }
 
     // Write the buffer to a PNG file
