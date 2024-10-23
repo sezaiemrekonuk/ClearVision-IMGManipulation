@@ -10,7 +10,7 @@ SecretImage::SecretImage(const GrayscaleImage &image) : width(image.get_width())
     // width = image.get_width(); // lol forgot these and lost like 30 minutes using        ^ is better
     // height = image.get_height();
     int upper_size = (width * (width + 1)) / 2;
-    int lower_size = (width * (width - 1)) / 2;
+    int lower_size = (height * (height - 1)) / 2;
 
     upper_triangular = new int[upper_size];
     lower_triangular = new int[lower_size];
@@ -39,11 +39,8 @@ SecretImage::SecretImage(int w, int h, int *upper, int *lower) : width(w), heigh
     // TODO: Your code goes here.
     // Since file reading part should dynamically allocate upper and lower matrices.
     // You should simply copy the parameters to instance variables.
-    upper_triangular = new int[w * h]; // directly copying does not work
-    lower_triangular = new int[w * h];
-
-    std::copy(upper, upper + w * h, upper_triangular);
-    std::copy(lower, lower + w * h, lower_triangular);
+    lower_triangular = lower;
+    upper_triangular = upper;
 }
 
 // Destructor: free the arrays
@@ -129,7 +126,7 @@ void SecretImage::save_to_file(const std::string &filename)
     // 2. Write the upper_triangular array to the second line.
     for (int i = 0; i < upper_size; i++)
     {
-        file << upper_triangular[i] << " ";
+        file << upper_triangular[i] << (i == upper_size - 1 ? "" : " ");
     }
     file << std::endl;
 
@@ -139,8 +136,9 @@ void SecretImage::save_to_file(const std::string &filename)
     // as the second line.
     for (int i = 0; i < lower_size; i++)
     {
-        file << lower_triangular[i] << " ";
+        file << lower_triangular[i] << (i == lower_size - 1 ? "" : " ");
     }
+    file << std::endl;
 
     file.close();
 }
@@ -158,49 +156,37 @@ SecretImage SecretImage::load_from_file(const std::string &filename)
     }
 
     // getting the line
-    std::string line;
-    std::getline(file, line);
 
     // getting width and height from the line, first converting it to a string stream
-    std::istringstream iss(line);
-
     int w, h;
-    iss >> w >> h;
+    file >> w >> h;
     // 2. Calculate the sizes of the upper and lower triangular arrays.
     int upper_size = (w * (w + 1)) / 2;
-    int lower_size = (w * (w - 1)) / 2;
+    int lower_size = (h * (h - 1)) / 2;
 
     // 3. Allocate memory for both arrays.
     int *upper = new int[upper_size];
     int *lower = new int[lower_size];
 
     // 4. Read the upper_triangular array from the second line, space-separated.
-    std::getline(file, line);
-    std::istringstream issut(line);
 
     for (int i = 0; i < upper_size; i++)
     {
-        issut >> upper[i];
+        file >> upper[i];
     }
-
-    std::getline(file, line);
-    std::istringstream isslt(line);
 
     // 5. Read the lower_triangular array from the third line, space-separated.
     for (int i = 0; i < lower_size; i++)
     {
-        isslt >> lower[i];
+        file >> lower[i];
     }
 
     // 6. Close the file and return a SecretImage object initialized with the
     file.close();
 
     //    width, height, and triangular arrays.
-    SecretImage secret_image(w, h, upper, lower);
 
-    delete[] upper;
-    delete[] lower;
-    return secret_image;
+    return SecretImage(w, h, upper, lower);
 }
 
 // Returns a pointer to the upper triangular part of the secret image.

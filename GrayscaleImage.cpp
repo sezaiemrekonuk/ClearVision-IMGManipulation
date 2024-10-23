@@ -21,8 +21,6 @@ GrayscaleImage::GrayscaleImage(const char *filename)
         exit(1);
     }
 
-    std::cout << "Loaded image " << filename << " with dimensions " << width << "x" << height << std::endl;
-
     // TODO: Your code goes here.
     // Dynamically allocate memory for a 2D matrix based on the given dimensions.
     data = new int *[height];
@@ -32,16 +30,21 @@ GrayscaleImage::GrayscaleImage(const char *filename)
     }
 
     // Fill the matrix with pixel values from the image
+    int image_index = 0;
     for (int i = 0; i < height; ++i)
     {
         for (int j = 0; j < width; ++j)
         {
-            data[i][j] = image[i * width + j];
+            data[i][j] = image[image_index++];
         }
     }
 
     // Check for if its loaded
-    std::cout << "Test GrayscaleImage: " << data[0][0] << std::endl;
+    if (data[0][0] != image[0])
+    {
+        std::cerr << "Error: Could not load image " << filename << std::endl;
+        exit(1);
+    }
 
     // Free the dynamically allocated memory of stbi image
     stbi_image_free(image);
@@ -77,8 +80,6 @@ GrayscaleImage::GrayscaleImage(int w, int h) : width(w), height(h)
     {
         data[i] = new int[w];
     }
-
-    std::memset(data[0], 0, width * height * sizeof(int));
 }
 
 // Copy constructor
@@ -108,13 +109,13 @@ GrayscaleImage::~GrayscaleImage()
     // TODO: Your code goes here.
     // Destructor: deallocate memory for the matrix.
 
-    // First clearing the inner arrays
+    // first clearing the inner arrays
     for (int i = 0; i < height; ++i)
     {
         delete[] data[i];
     }
 
-    // Then clearing the outer array
+    // then clearing the outer array
     delete[] data;
 }
 
@@ -133,11 +134,23 @@ bool GrayscaleImage::operator==(const GrayscaleImage &other) const
     // Compare pixel values
     for (int i = 0; i < height; ++i)
     {
-        if (std::memcmp(data[i], other.data[i], width * sizeof(int)) != 0)
+        if (!std::equal(data[i], data[i] + width, other.data[i]))
         {
             return false;
         }
     }
+
+    // for debug
+    // for (int i = 0; i < height; i++)
+    // {
+    //     for (int j = 0; j < width; j++)
+    //     {
+    //         if (data[i][j] != other.data[i][j])
+    //         {
+    //             std::cout << "Error: Pixel values are not equal at row: " << i << " col: " << j << " this: " << data[i][j] << " other: " << other.data[i][j] << std::endl;
+    //         }
+    //     }
+    // }
 
     return true;
 }
@@ -210,16 +223,6 @@ void GrayscaleImage::save_to_file(const char *filename) const
         {
             imageBuffer[i * width + j] = static_cast<unsigned char>(data[i][j]);
         }
-    }
-
-    FILE *file = fopen(filename, "wb");
-    if (!file)
-    {
-        std::cerr << "Error: Cannot open file " << filename << " for writing." << std::endl;
-    }
-    else
-    {
-        fclose(file);
     }
 
     // Write the buffer to a PNG file

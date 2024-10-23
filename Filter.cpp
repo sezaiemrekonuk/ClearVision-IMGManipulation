@@ -18,10 +18,12 @@ void Filter::apply_mean_filter(GrayscaleImage &image, int kernelSize)
     GrayscaleImage copyImage(image);
     // 2. For each pixel, calculate the mean value of its neighbors using a kernel.
     int halfKernelSize = kernelSize / 2;
+    int width = image.get_width();
+    int height = image.get_height();
 
-    for (int i = 0; i < image.get_height(); i++)
+    for (int i = 0; i < height; i++)
     {
-        for (int j = 0; j < image.get_width(); j++)
+        for (int j = 0; j < width; j++)
         {
             int sum = 0;
             int count = 0;
@@ -34,7 +36,7 @@ void Filter::apply_mean_filter(GrayscaleImage &image, int kernelSize)
                 for (int b = j - halfKernelSize; b <= j + halfKernelSize; b++)
                 {
                     // checking if the pixel is inside the image, if so add the pixel value to vector.
-                    if (a >= 0 && a < image.get_height() && b >= 0 && b < image.get_width())
+                    if (a >= 0 && a < height && b >= 0 && b < width)
                     {
                         sum += copyImage.get_pixel(a, b);
                     }
@@ -61,49 +63,47 @@ void Filter::apply_gaussian_smoothing(GrayscaleImage &image, int kernelSize, dou
 
     GrayscaleImage copyImage = image;
 
+    int height = image.get_height();
+    int width = image.get_width();
+
     std::vector<std::vector<double>> kernel(kernelSize, std::vector<double>(kernelSize)); // should be a 2d vector to store the weights of the kernel according to the distance from the center.
+
+    int halfKernelSize = kernelSize / 2;
+    double sum = 0.0;
 
     // calculating the weights of the kernel
     for (int i = 0; i < kernelSize; i++)
     {
         for (int j = 0; j < kernelSize; j++)
         {
-            kernel[i][j] = gaussian_2d_weight_finder(i - kernelSize / 2, j - kernelSize / 2, sigma);
-        }
-    }
-
-    // accumulate doesn't work??
-    double sum = 0.0;
-    for (int i = 0; i < kernelSize; i++)
-    {
-        for (int j = 0; j < kernelSize; j++)
-        {
+            kernel[i][j] = gaussian_2d_weight_finder(i - halfKernelSize, j - halfKernelSize, sigma);
             sum += kernel[i][j];
         }
     }
 
     // normalizing the kernel
+    double inverseSum = 1.0 / sum;
     for (int i = 0; i < kernelSize; i++)
     {
         for (int j = 0; j < kernelSize; j++)
         {
-            kernel[i][j] /= sum;
+            kernel[i][j] *= inverseSum;
         }
     }
 
-    for (int i = 0; i < image.get_height(); i++)
+    for (int i = 0; i < height; i++)
     {
-        for (int j = 0; j < image.get_width(); j++)
+        for (int j = 0; j < width; j++)
         {
             double weightedSum = 0.0;
 
-            for (int a = i - kernelSize / 2; a <= i + kernelSize / 2; a++)
+            for (int a = i - halfKernelSize; a <= i + halfKernelSize; a++)
             {
-                for (int b = j - kernelSize / 2; b <= j + kernelSize / 2; b++)
+                for (int b = j - halfKernelSize; b <= j + halfKernelSize; b++)
                 {
-                    if (a >= 0 && a < image.get_height() && b >= 0 && b < image.get_width())
+                    if (a >= 0 && a < height && b >= 0 && b < width)
                     {
-                        weightedSum += copyImage.get_pixel(a, b) * kernel[a - i + kernelSize / 2][b - j + kernelSize / 2];
+                        weightedSum += copyImage.get_pixel(a, b) * kernel[a - i + halfKernelSize][b - j + halfKernelSize];
                     }
                 }
             }
@@ -111,6 +111,12 @@ void Filter::apply_gaussian_smoothing(GrayscaleImage &image, int kernelSize, dou
             image.set_pixel(i, j, static_cast<int>(std::floor(weightedSum)));
         }
     }
+
+    for (int i = 0; i < kernelSize; i++)
+    {
+        kernel[i].clear();
+    }
+    kernel.clear();
 }
 
 // Unsharp Masking Filter

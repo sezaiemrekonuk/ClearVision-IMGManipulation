@@ -8,34 +8,11 @@ std::vector<int> Crypto::extract_LSBits(SecretImage &secret_image, int message_l
     // TODO: Your code goes here.
 
     // 1. Reconstruct the SecretImage to a GrayscaleImage. (##pre-existing matrix)
-    // merging lower and upper part of secret image to be a single 2d array
-    int **merged_secret_image_data;
-    int height = secret_image.get_height();
-    int width = secret_image.get_width();
-
-    merged_secret_image_data = new int *[height];
-
-    for (int i = 0; i < height; i++)
-    {
-        merged_secret_image_data[i] = new int[width];
-    }
-
-    for (int i = 0; i < height; i++)
-    {
-        for (int j = 0; j < width; j++)
-        {
-            int upper_secret_image_pixel = secret_image.get_upper_triangular()[i * width + j];
-            int lower_secret_image_pixel = secret_image.get_lower_triangular()[i * width + j];
-
-            merged_secret_image_data[i][j] = (i <= j) ? upper_secret_image_pixel : lower_secret_image_pixel;
-        }
-    }
-
-    GrayscaleImage reconstructed_grayscale_image(merged_secret_image_data, height, width);
+    GrayscaleImage reconstructed_image = secret_image.reconstruct();
 
     // 2. Calculate the image dimensions.
-    int image_width = reconstructed_grayscale_image.get_width();
-    int image_height = reconstructed_grayscale_image.get_height();
+    int image_width = reconstructed_image.get_width();
+    int image_height = reconstructed_image.get_height();
 
     // 3. Determine the total bits required based on message length.
     // (PDF) Convert the ASCII characters of the message into a binary bitstream, where each character is represented by 7 bits.
@@ -58,10 +35,10 @@ std::vector<int> Crypto::extract_LSBits(SecretImage &secret_image, int message_l
     {
 
         int curr_pixel = starting_pixel + i;
-        int row = curr_pixel / width;
-        int col = curr_pixel % width;
+        int row = curr_pixel / image_width;
+        int col = curr_pixel % image_width;
 
-        int pixel = reconstructed_grayscale_image.get_pixel(row, col);
+        int pixel = reconstructed_image.get_pixel(row, col);
 
         // The value at the least significant bit position = x & 1 (<3 stackoverflow)
         int lsb = pixel & 1;
@@ -89,7 +66,7 @@ std::string Crypto::decrypt_message(const std::vector<int> &LSB_array)
         std::bitset<7> bits;
         for (int j = 0; j < 7; j++)
         {
-            bits[j] = LSB_array[i + j];
+            bits[6 - j] = LSB_array[i + j];
         }
 
         // 3. Collect the characters to form the decrypted message.
@@ -109,14 +86,15 @@ std::vector<int> Crypto::encrypt_message(const std::string &message)
 
     // 1. Convert each character of the message into a 7-bit binary representation.
     //    You can use std::bitset.
-    for (int i = 0; i < message.size(); i++)
+    // for (int i = 0; i < message.size(); i++)
+    for (char c : message)
     {
-        std::bitset<7> bits(message[i]);
+        std::bitset<7> bits(c);
 
         // std::cout << bits << std::endl;
 
         // 2. Collect the bits into the LSB array.
-        for (int j = 6; j >= 0; j--) // changed the loop direction
+        for (int j = 6; j >= 0; --j) // changed the loop direction
         {
             LSB_array.push_back(bits[j]);
         }
@@ -132,21 +110,23 @@ SecretImage Crypto::embed_LSBits(GrayscaleImage &image, const std::vector<int> &
     // TODO: Your code goes here.
 
     // std::cout << "#sf test1" << std::endl;
+    int width = image.get_width();
+    int height = image.get_height();
+    int lsb_size = LSB_array.size();
 
-    int total_pixels = image.get_width() * image.get_height();
+    int total_pixels = width * height;
     // 1. Ensure the image has enough pixels to store the LSB array, else throw an error.
-    if (LSB_array.size() > total_pixels)
+    if (lsb_size > total_pixels)
     {
         throw std::invalid_argument("Image too small, cant store the message");
     }
 
     // 2. Find the starting pixel based on the message length knowing that
     //    the last LSB to embed should end up in the last pixel of the image.
-    int starting_pixel = total_pixels - LSB_array.size();
-    int width = image.get_width();
+    int starting_pixel = total_pixels - lsb_size;
 
     // 3. Iterate over the image pixels, embedding LSBs from the array.
-    for (int i = 0; i < LSB_array.size(); i++)
+    for (size_t i = 0; i < lsb_size; i++)
     {
         int curr_pixel = starting_pixel + i;
         int row = curr_pixel / width;
@@ -158,7 +138,7 @@ SecretImage Crypto::embed_LSBits(GrayscaleImage &image, const std::vector<int> &
         pixel &= ~1;
 
         // setting the lsb of pixel using array
-        pixel |= LSB_array[i - starting_pixel];
+        pixel |= LSB_array[i];
 
         image.set_pixel(row, col, pixel);
     }
