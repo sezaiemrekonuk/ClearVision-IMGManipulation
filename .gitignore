@@ -1,0 +1,7 @@
+*.o
+.cache/
+.vscode/
+build/
+sample_io/
+*.zip
+*.pdf
