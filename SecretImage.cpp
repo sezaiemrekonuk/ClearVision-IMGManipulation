@@ -169,7 +169,6 @@ SecretImage SecretImage::load_from_file(const std::string &filename)
     int *lower = new int[lower_size];
 
     // 4. Read the upper_triangular array from the second line, space-separated.
-
     for (int i = 0; i < upper_size; i++)
     {
         file >> upper[i];
@@ -181,11 +180,10 @@ SecretImage SecretImage::load_from_file(const std::string &filename)
         file >> lower[i];
     }
 
-    // 6. Close the file and return a SecretImage object initialized with the
+    // 6. Close the file and 
     file.close();
 
-    //    width, height, and triangular arrays.
-
+    //  return a SecretImage object initialized with the width, height, and triangular arrays.
     return SecretImage(w, h, upper, lower);
 }
 
