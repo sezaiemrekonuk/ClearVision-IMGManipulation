@@ -1,7 +1,13 @@
 #include "Crypto.h"
 #include "GrayscaleImage.h"
 
-// Extract the least significant bits (LSBs) from SecretImage, calculating x, y based on message length
+/**
+ * @brief Extract the least significant bits (LSBs) from SecretImage, calculating x, y based on message length
+ * 
+ * @param secret_image 
+ * @param message_length 
+ * @return std::vector<int> 
+ */
 std::vector<int> Crypto::extract_LSBits(SecretImage &secret_image, int message_length)
 {
     std::vector<int> LSB_array;
@@ -49,7 +55,12 @@ std::vector<int> Crypto::extract_LSBits(SecretImage &secret_image, int message_l
     return LSB_array;
 }
 
-// Decrypt message by converting LSB array into ASCII characters
+/**
+ * @brief Decrypt the message by converting the LSB array into ASCII characters
+ * 
+ * @param LSB_array 
+ * @return std::string 
+ */
 std::string Crypto::decrypt_message(const std::vector<int> &LSB_array)
 {
     std::string message;
@@ -78,7 +89,12 @@ std::string Crypto::decrypt_message(const std::vector<int> &LSB_array)
     return message;
 }
 
-// Encrypt message by converting ASCII characters into LSBs
+/**
+ * @brief Encrypt message by converting ASCII characters into LSBs
+ * 
+ * @param message 
+ * @return std::vector<int> 
+ */
 std::vector<int> Crypto::encrypt_message(const std::string &message)
 {
     std::vector<int> LSB_array;
@@ -104,7 +120,13 @@ std::vector<int> Crypto::encrypt_message(const std::string &message)
     return LSB_array;
 }
 
-// Embed LSB array into GrayscaleImage starting from the last bit of the image
+/**
+ * @brief Embed LSB array into GrayscaleImage starting from the last bit of the image
+ * 
+ * @param image 
+ * @param LSB_array 
+ * @return SecretImage 
+ */
 SecretImage Crypto::embed_LSBits(GrayscaleImage &image, const std::vector<int> &LSB_array)
 {
     // TODO: Your code goes here.

@@ -7,7 +7,11 @@
 #include "stb_image_write.h"
 #include <stdexcept>
 
-// Constructor: load from a file
+/**
+ * @brief Construct a new Grayscale Image:: Grayscale Image object from a file
+ * 
+ * @param filename 
+ */
 GrayscaleImage::GrayscaleImage(const char *filename)
 {
 
@@ -50,7 +54,13 @@ GrayscaleImage::GrayscaleImage(const char *filename)
     stbi_image_free(image);
 }
 
-// Constructor: initialize from a pre-existing data matrix
+/**
+ * @brief Construct a new Grayscale Image:: Grayscale Image object with pre-existing GrayscaleImage
+ * 
+ * @param inputData 
+ * @param h 
+ * @param w 
+ */
 GrayscaleImage::GrayscaleImage(int **inputData, int h, int w) : width(w), height(h)
 {
     // TODO: Your code goes here.
@@ -70,7 +80,12 @@ GrayscaleImage::GrayscaleImage(int **inputData, int h, int w) : width(w), height
     }
 }
 
-// Constructor to create a blank image of given width and height
+/**
+ * @brief Construct a new Grayscale Image:: Grayscale Image object with width and height
+ * 
+ * @param w 
+ * @param h 
+ */
 GrayscaleImage::GrayscaleImage(int w, int h) : width(w), height(h)
 {
     // TODO: Your code goes here.
@@ -82,7 +97,11 @@ GrayscaleImage::GrayscaleImage(int w, int h) : width(w), height(h)
     }
 }
 
-// Copy constructor
+/**
+ * @brief Construct a new Grayscale Image:: Grayscale Image object copy constructor
+ * 
+ * @param other 
+ */
 GrayscaleImage::GrayscaleImage(const GrayscaleImage &other) : width(other.width), height(other.height)
 {
     // TODO: Your code goes here.
@@ -103,7 +122,11 @@ GrayscaleImage::GrayscaleImage(const GrayscaleImage &other) : width(other.width)
     }
 }
 
-// Destructor
+/**
+ * @brief Destroy the Grayscale Image:: Grayscale Image object destructor
+ * 
+ * Frees the memory allocated for the data matrix.
+ */
 GrayscaleImage::~GrayscaleImage()
 {
     // TODO: Your code goes here.
@@ -118,7 +141,7 @@ GrayscaleImage::~GrayscaleImage()
     // then clearing the outer array
     delete[] data;
 }
-
+// ----------------- Operators -----------------
 // Equality operator
 bool GrayscaleImage::operator==(const GrayscaleImage &other) const
 {

@@ -5,12 +5,25 @@
 #include <numeric>
 #include <math.h>
 
+/**
+ * @brief Calculate the weight of a 2D Gaussian function at a given position, which is in a kernel.
+ * 
+ * @param x 
+ * @param y 
+ * @param sigma 
+ * @return double, the weight
+ */
 double gaussian_2d_weight_finder(int x, int y, double sigma)
 {
     return (1.0 / (2 * M_PI * sigma * sigma)) * exp(-(x * x + y * y) / (2 * sigma * sigma));
 }
 
-// Mean Filter
+/**
+ * @brief Apply a mean filter to the image using the given kernel size.
+ * 
+ * @param image 
+ * @param kernelSize 
+ */
 void Filter::apply_mean_filter(GrayscaleImage &image, int kernelSize)
 {
     // TODO: Your code goes here.
@@ -52,7 +65,13 @@ void Filter::apply_mean_filter(GrayscaleImage &image, int kernelSize)
     }
 }
 
-// Gaussian Smoothing Filter
+/**
+ * @brief Gaussian smoothing filter
+ * 
+ * @param image reference
+ * @param kernelSize 
+ * @param sigma 
+ */
 void Filter::apply_gaussian_smoothing(GrayscaleImage &image, int kernelSize, double sigma)
 {
     // TODO: Your code goes here.
@@ -119,7 +138,13 @@ void Filter::apply_gaussian_smoothing(GrayscaleImage &image, int kernelSize, dou
     kernel.clear();
 }
 
-// Unsharp Masking Filter
+/**
+ * @brief Unsharp masking filter
+ * 
+ * @param image reference
+ * @param kernelSize 
+ * @param amount 
+ */
 void Filter::apply_unsharp_mask(GrayscaleImage &image, int kernelSize, double amount)
 {
     // TODO: Your code goes here.

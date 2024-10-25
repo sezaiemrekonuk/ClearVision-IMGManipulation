@@ -1,7 +1,11 @@
 #include "SecretImage.h"
 #include "fstream"
 
-// Constructor: split image into upper and lower triangular arrays
+/**
+ * @brief Construct a new Secret Image:: split image into upper and lower triangular arrays
+ * 
+ * @param image 
+ */
 SecretImage::SecretImage(const GrayscaleImage &image) : width(image.get_width()), height(image.get_height())
 {
     // TODO: Your code goes here.
@@ -33,7 +37,14 @@ SecretImage::SecretImage(const GrayscaleImage &image) : width(image.get_width())
     }
 }
 
-// Constructor: instantiate based on data read from file
+/**
+ * @brief Construct a new Secret Image:: instantiate based on data read from file
+ * 
+ * @param w 
+ * @param h 
+ * @param upper 
+ * @param lower 
+ */
 SecretImage::SecretImage(int w, int h, int *upper, int *lower) : width(w), height(h)
 {
     // TODO: Your code goes here.
@@ -43,7 +54,11 @@ SecretImage::SecretImage(int w, int h, int *upper, int *lower) : width(w), heigh
     upper_triangular = upper;
 }
 
-// Destructor: free the arrays
+/**
+ * @brief Destroy the Secret Image:: Secret Image object destructor
+ * 
+ * Frees the memory allocated for the upper and lower triangular matrices.
+ */
 SecretImage::~SecretImage()
 {
     // TODO: Your code goes here.
@@ -53,7 +68,11 @@ SecretImage::~SecretImage()
     delete[] lower_triangular;
 }
 
-// Reconstructs and returns the full image from upper and lower triangular matrices.
+/**
+ * @brief  Reconstructs and returns the full image from upper and lower triangular matrices.
+ * 
+ * @return GrayscaleImage 
+ */
 GrayscaleImage SecretImage::reconstruct() const
 {
     GrayscaleImage image(width, height);
@@ -79,7 +98,11 @@ GrayscaleImage SecretImage::reconstruct() const
     return image;
 }
 
-// Save the filtered image back to the triangular arrays
+/**
+ * @brief Save the filtered image back to the triangular arrays
+ * 
+ * @param image 
+ */
 void SecretImage::save_back(const GrayscaleImage &image)
 {
     // TODO: Your code goes here.
@@ -106,7 +129,11 @@ void SecretImage::save_back(const GrayscaleImage &image)
     }
 }
 
-// Save the upper and lower triangular arrays to a file
+/**
+ * @brief Save the upper and lower triangular arrays to a file
+ * 
+ * @param filename 
+ */
 void SecretImage::save_to_file(const std::string &filename)
 {
     // TODO: Your code goes here.
@@ -143,7 +170,12 @@ void SecretImage::save_to_file(const std::string &filename)
     file.close();
 }
 
-// Static function to load a SecretImage from a file
+/**
+ * @brief Load the upper and lower triangular arrays from a file
+ * 
+ * @param filename 
+ * @return SecretImage 
+ */
 SecretImage SecretImage::load_from_file(const std::string &filename)
 {
     // TODO: Your code goes here.
@@ -187,6 +219,7 @@ SecretImage SecretImage::load_from_file(const std::string &filename)
     return SecretImage(w, h, upper, lower);
 }
 
+// ------------ Getter functions ------------
 // Returns a pointer to the upper triangular part of the secret image.
 int *SecretImage::get_upper_triangular() const
 {
